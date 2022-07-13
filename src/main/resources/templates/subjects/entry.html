@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<div layout:fragment="content">
+    <div class="my-4">
+        <div th:replace="layout/menu :: menu"></div>
+
+        <h1 th:text="${'Eintrag bearbeiten für WG-Kassenbuch ' + entry.subject.name}"></h1>
+    </div>
+
+    <form method="post" th:action="@{/entries/{id}(id=${entry.id})}" th:object="${subjectEntryForm}">
+        <div class="form-group row">
+            <label class="col-form-label col-form-label-sm col-sm-2">ausgegeben von</label>
+            <div class="col-sm-10">
+                <select class="form-control form-control-sm" th:classappend="${#fields.hasErrors('creditor') ? 'is-invalid' : ''}"
+                        th:field="*{creditor}">
+                    <option value="">bitte wählen</option>
+                    <option th:each="user : ${users}" th:text="${user.name}" th:value="${user.id}"></option>
+                </select>
+                <label class="text-danger small" th:errors="*{creditor}"/>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-form-label col-form-label-sm col-sm-2">Betrag</label>
+            <div class="col-sm-10">
+                <input class="form-control form-control-sm" min="0" step="0.01" th:classappend="${#fields.hasErrors('amount') ? 'is-invalid' : ''}" th:field="*{amount}"
+                       type="number"/>
+                <label class="text-danger small" th:errors="*{amount}"/>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-form-label col-form-label-sm col-sm-2">Beschreibung</label>
+            <div class="col-sm-10">
+                <input class="form-control form-control-sm" th:classappend="${#fields.hasErrors('description') ? 'is-invalid' : ''}" th:field="*{description}"
+                       type="text"/>
+                <label class="text-danger small" th:errors="*{description}"/>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-form-label col-form-label-sm col-sm-2">ausgegeben für</label>
+            <div class="col-sm-10">
+                <select class="form-control form-control-sm" multiple="multiple" th:classappend="${#fields.hasErrors('debitors') ? 'is-invalid' : ''}"
+                        th:field="*{debitors}">
+                    <option th:each="user : ${users}" th:text="${user.name}" th:value="${user.id}"></option>
+                </select>
+                <label class="text-danger small" th:errors="*{debitors}"/>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-10">
+                <button class="btn btn-primary btn-sm" type="submit">Ändern</button>
+                <a class="btn btn-sm btn-outline-secondary ml-3" th:href="@{/subjects/{id}(id=${entry.subject.id})}">Abbrechen</a>      </div>
+        </div>
+    </form>
+
+</div>
+</body>
+</html>

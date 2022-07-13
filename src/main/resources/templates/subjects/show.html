@@ -1,0 +1,107 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout}">
+<body>
+<div layout:fragment="content">
+    <div class="my-4">
+        <div th:replace="layout/menu :: menu"></div>
+
+        <h1 th:text="${'WG-Kassenbuch ' + subject.name}"></h1>
+        <form th:if="${subject.ownedByCurrentUser}"
+              th:action="@{/subjects/{id}/delete(id=${subject.id})}" method="post" class="form">
+            <button type="submit" class="btn btn-danger">Löschen</button>
+        </form>
+    </div>
+
+    <!--/*@thymesVar id="ownedByCurrentUser" type="java"*/-->
+    <hr th:if="${subject.ownedByCurrentUser}" />
+
+    <form method="post" th:if="${subject.ownedByCurrentUser}"
+          th:action="@{/subjects/{id}(id=${subject.id})}" th:object="${subjectForm}">
+        <div class="form-group">
+            <label>Neuer Name</label>
+            <input class="form-control form-control-sm" th:field="*{name}" type="text"
+                   th:classappend="${#fields.hasErrors('name') ? 'is-invalid' : ''}" />
+            <span class="text-danger small" th:errors="*{name}" />
+        </div>
+        <div class="form-group">
+            <button class="btn btn-primary" type="submit">Ändern</button>
+        </div>
+    </form>
+
+    <table th:if="${subject != null and !subject.entries.empty}" class="table">
+        <tr>
+            <th>ausgegeben von</th>
+            <th>Betrag</th>
+            <th>Beschreibung</th>
+            <th>ausgegeben für</th>
+            <th></th>
+        </tr>
+        <tr th:each="entry : ${subject.entries}">
+            <td th:text="${entry.creditor}"></td>
+            <td th:text="${#numbers.formatDecimal(entry.amount, 1, 2)}"></td>
+            <td th:text="${entry.description}"></td>
+            <td th:text="${entry.debitorNames}"></td>
+            <td><a sec:authorize="authenticated" th:href="${'/entries/' + entry.id}">Bearbeiten</a></td>
+        </tr>
+    </table>
+
+    <div sec:authorize="authenticated">
+        <hr />
+        <h2>Neuer Eintrag</h2>
+        <form method="post" th:action="@{/subjects/{id}/entries(id=${subject.id})}" th:object="${subjectEntryForm}">
+            <div class="form-group row">
+                <label class="col-form-label col-form-label-sm col-sm-2">ausgegeben von</label>
+                <div class="col-sm-10">
+                    <select class="form-control form-control-sm" th:classappend="${#fields.hasErrors('creditor') ? 'is-invalid' : ''}"
+                            th:field="*{creditor}">
+                        <option value="">bitte wählen</option>
+                        <option th:each="user : ${users}" th:text="${user.name}" th:value="${user.id}"></option>
+                    </select>
+                    <label class="text-danger small" th:errors="*{creditor}" />
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-form-label col-form-label-sm col-sm-2">Betrag</label>
+                <div class="col-sm-10">
+                    <input class="form-control form-control-sm" min="0" step="0.01" th:classappend="${#fields.hasErrors('amount') ? 'is-invalid' : ''}" th:field="*{amount}"
+                           type="number"/>
+                    <label class="text-danger small" th:errors="*{amount}" />
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-form-label col-form-label-sm col-sm-2">Beschreibung</label>
+                <div class="col-sm-10">
+                    <input class="form-control form-control-sm" th:classappend="${#fields.hasErrors('description') ? 'is-invalid' : ''}" th:field="*{description}"
+                           type="text"/>
+                    <label class="text-danger small" th:errors="*{description}" />
+                </div>
+            </div>
+            <div class="form-group row">
+                <label class="col-form-label col-form-label-sm col-sm-2">ausgegeben für</label>
+                <div class="col-sm-10">
+                    <select class="form-control form-control-sm" multiple="multiple" th:classappend="${#fields.hasErrors('debitors') ? 'is-invalid' : ''}"
+                            th:field="*{debitors}">
+                        <option th:each="user : ${users}" th:text="${user.name}" th:value="${user.id}"></option>
+                    </select>
+                    <label class="text-danger small" th:errors="*{debitors}" />
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-sm-2"></div>
+                <div class="col-sm-10">
+                    <button class="btn btn-primary btn-sm" type="submit">Eintragen</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <hr/>
+    <p class="small">
+        <a href="/subjects/">Index</a>
+    </p>
+
+</div>
+</body>
+</html>
